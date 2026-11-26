@@ -1208,9 +1208,8 @@ function RevertUserMessageButton({
   );
 }
 
-const COLLAPSED_USER_MESSAGE_FADE_HEIGHT_REM = 1.75;
-
-const COLLAPSED_USER_MESSAGE_FADE_MASK = `linear-gradient(to bottom, black calc(100% - ${COLLAPSED_USER_MESSAGE_FADE_HEIGHT_REM}rem), transparent)`;
+// RainCode: long messages show 6 lines under a soft fade and a quiet key to open the rest.
+const USER_MESSAGE_FOLD_LINES = 6;
 
 const CollapsibleUserMessageBody = memo(function CollapsibleUserMessageBody(props: {
   text: string;
@@ -1225,16 +1224,17 @@ const CollapsibleUserMessageBody = memo(function CollapsibleUserMessageBody(prop
   const hasVisibleBody = props.text.trim().length > 0;
   const { ref: contentRef, tallEnough: canCollapse } = useTallEnoughToFold(
     props.collapsible !== false && hasVisibleBody,
+    USER_MESSAGE_FOLD_LINES,
   );
   const isCollapsed = canCollapse && !expanded;
-  const showCollapseControl = canCollapse;
+  const [openHeight, setOpenHeight] = useState<number | null>(null);
 
   return (
     <div>
       {hasVisibleBody ? (
         <div
           ref={revealRef}
-          className={cn("relative", isCollapsed && "max-h-44 overflow-hidden")}
+          className="relative"
           data-user-message-body="true"
           data-thread-find-text="true"
           data-thread-find-fold={isCollapsed ? "" : undefined}
@@ -1242,10 +1242,14 @@ const CollapsibleUserMessageBody = memo(function CollapsibleUserMessageBody(prop
           data-user-message-collapsible={canCollapse ? "true" : "false"}
           data-user-message-fade={isCollapsed ? "true" : "false"}
           style={
-            isCollapsed
+            canCollapse
               ? {
-                  WebkitMaskImage: COLLAPSED_USER_MESSAGE_FADE_MASK,
-                  maskImage: COLLAPSED_USER_MESSAGE_FADE_MASK,
+                  // Grows down to the full height and folds back; the fade only while folded.
+                  maxHeight: isCollapsed
+                    ? `${USER_MESSAGE_FOLD_LINES}lh`
+                    : openHeight === null
+                      ? undefined
+                      : `${openHeight}px`,
                 }
               : undefined
           }
@@ -1260,22 +1264,19 @@ const CollapsibleUserMessageBody = memo(function CollapsibleUserMessageBody(prop
           </div>
         </div>
       ) : null}
-      {showCollapseControl ? (
-        <div className="mt-1.5 flex items-center justify-end gap-2" data-user-message-footer="true">
-          {showCollapseControl ? (
-            <Button
-              type="button"
-              size="xs"
-              variant="ghost-muted"
-              aria-expanded={expanded}
-              data-scroll-anchor-ignore
-              onClick={() => setExpanded((value) => !value)}
-              className="-ml-1"
-            >
-              {expanded ? <T>Show less</T> : <T>Show full message</T>}
-            </Button>
-          ) : null}
-        </div>
+      {canCollapse ? (
+        <button
+          type="button"
+          aria-expanded={expanded}
+          data-scroll-anchor-ignore
+          data-user-message-more=""
+          onClick={() => {
+            setOpenHeight(contentRef.current?.offsetHeight ?? null);
+            setExpanded((value) => !value);
+          }}
+        >
+          {expanded ? <T>Show less</T> : <T>Show more</T>}
+        </button>
       ) : null}
     </div>
   );

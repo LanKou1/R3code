@@ -770,6 +770,12 @@ export const SETTINGS_SEARCH_ITEMS = [
     ],
   },
   {
+    id: "send-motion",
+    title: msg("Send motion"),
+    to: "/settings/appearance",
+    searchTerms: [msg("theme dots plain rain animation background raincode rise condense")],
+  },
+  {
     id: "time-format",
     title: msg("Time format"),
     to: "/settings/general",

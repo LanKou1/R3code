@@ -16,6 +16,10 @@ import {
   withImplicitFastModeDefault,
 } from "@t3tools/shared/model";
 
+import {
+  isReasoningSelect,
+  selectableProviderOptionChoices,
+} from "@t3tools/client-runtime/model-traits";
 import type { DraftId } from "../../composerDraftStore";
 import { getProviderModelCapabilities, keepsUnavailableModelOptions } from "../../providerModels";
 import {
@@ -198,4 +202,31 @@ export function resolveComposerTraitsInput(
   const persistence = threadRef ? { threadRef } : draftId ? { draftId } : null;
   if (!persistence) return null;
   return { ...rest, ...persistence, modelOptions: selections };
+}
+
+/** RainCode: the reasoning levels this model offers and which one is set, for the Tenon effort knob. */
+export function getComposerReasoningLevels(input: {
+  provider: ProviderDriverKind;
+  model: string;
+  models: ReadonlyArray<ServerProviderModel>;
+  modelOptions: ReadonlyArray<ProviderOptionSelection> | null | undefined;
+  includePlanAgent?: boolean | undefined;
+}): { levels: ReadonlyArray<{ id: string; label: string }>; current: string | null } | null {
+  const { caps, selections } = resolveComposerOptionSelections(
+    input.models,
+    input.model,
+    input.provider,
+    input.modelOptions,
+    input.includePlanAgent,
+  );
+  const descriptors = getProviderOptionDescriptors({ caps, selections });
+  // Same rules as T3's own stepper (getReasoningTraitStep), so the knob and the picker agree.
+  const reasoning = descriptors.find(isReasoningSelect);
+  const choices = reasoning ? selectableProviderOptionChoices(reasoning) : [];
+  if (!reasoning || choices.length < 2) return null;
+  const value = getProviderOptionCurrentValue(reasoning);
+  return {
+    levels: choices.map((o) => ({ id: o.id, label: o.label })),
+    current: typeof value === "string" ? value : null,
+  };
 }

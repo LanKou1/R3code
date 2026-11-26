@@ -68,6 +68,12 @@ export const TimestampFormat = Schema.Literals(["locale", "12-hour", "24-hour"])
 export type TimestampFormat = typeof TimestampFormat.Type;
 const DEFAULT_TIMESTAMP_FORMAT: TimestampFormat = "locale";
 
+// RainCode: the look behind the composer and how a send moves.
+export const RaincodeTheme = Schema.Literals(["dots", "plain"]);
+export type RaincodeTheme = typeof RaincodeTheme.Type;
+export const RaincodeArrival = Schema.Literals(["rise", "condense"]);
+export type RaincodeArrival = typeof RaincodeArrival.Type;
+
 export const DiffLayout = Schema.Literals(["stacked", "split"]);
 export type DiffLayout = typeof DiffLayout.Type;
 const DEFAULT_DIFF_LAYOUT: DiffLayout = "stacked";
@@ -578,6 +584,10 @@ export const ClientSettingsSchema = Schema.Struct({
   ),
   timestampFormat: TimestampFormat.pipe(
     Schema.withDecodingDefault(Effect.succeed(DEFAULT_TIMESTAMP_FORMAT)),
+  ),
+  raincodeTheme: RaincodeTheme.pipe(Schema.withDecodingDefault(Effect.succeed("dots" as const))),
+  raincodeArrival: RaincodeArrival.pipe(
+    Schema.withDecodingDefault(Effect.succeed("rise" as const)),
   ),
   // Superseded by voiceMicrophones; read only to seed an empty order.
   voiceMicrophone: Schema.String.pipe(Schema.withDecodingDefault(Effect.succeed(""))),
@@ -2163,6 +2173,8 @@ export const ClientSettingsPatch = Schema.Struct({
   sidebarProjectSortOrder: Schema.optionalKey(SidebarProjectSortOrder),
   sidebarThreadSortOrder: Schema.optionalKey(SidebarThreadSortOrder),
   timestampFormat: Schema.optionalKey(TimestampFormat),
+  raincodeTheme: Schema.optionalKey(RaincodeTheme),
+  raincodeArrival: Schema.optionalKey(RaincodeArrival),
   voiceMicrophone: Schema.optionalKey(Schema.String),
   voiceMicrophones: Schema.optionalKey(Schema.Array(VoiceMicrophoneEntry)),
   voiceShortcutMode: Schema.optionalKey(VoiceShortcutMode),

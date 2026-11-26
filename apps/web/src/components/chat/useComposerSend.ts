@@ -1,3 +1,4 @@
+import { captureSend } from "../raincode/sendMotion";
 import { msg } from "gt-react";
 import { thrownErrorMessage } from "@t3tools/client-runtime/errors";
 import { m } from "~/i18n/messages";
@@ -1117,6 +1118,9 @@ export function useComposerSend(input: ComposerSendInput) {
     // Uploads finish after the message shows as sending; the turn starts once they land.
     if (turnUsesAttachmentUploads) startDraftAttachmentUploads(composerAttachmentsSnapshot);
 
+    // RainCode: the send motion copies the words before the box empties or the screen docks.
+    if (isCurrentRouteThread() && multipleModelSelections === null)
+      captureSend(messageIdForSend, isDraftHeroState);
     if (
       isCurrentRouteThread() &&
       multipleModelSelections === null &&

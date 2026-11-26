@@ -89,7 +89,6 @@ import {
   extendReplacementRangeForTrailingSpace,
   replaceTextRange,
 } from "../../composer-logic";
-import { DEFAULT_COMPOSER_PLACEHOLDER } from "../../composerPlaceholder";
 import { deriveComposerSendState, getAntigravitySendBlockReason } from "../ChatView.logic";
 import { threadHasStarted } from "../../lib/chatThreadActions";
 import {
@@ -229,7 +228,11 @@ import { ComposerFooterPrimaryActions } from "./ComposerFooterControls";
 import { ComposerPendingUserInputPanel } from "./ComposerPendingUserInputPanel";
 import { resolveComposerMenuActiveItemId } from "./composerMenuHighlight";
 import { buildPullRequestReferenceContext } from "../pullRequest/pullRequestDetail.logic";
-import { getComposerPromptInjectionState, getComposerReasoningStep } from "./composerProviderState";
+import {
+  getComposerPromptInjectionState,
+  getComposerReasoningLevels,
+  getComposerReasoningStep,
+} from "./composerProviderState";
 import { readPromptUltrathink } from "./TraitsPicker";
 import { useApplyThreadModelPick } from "./useApplyThreadModelPick";
 import {
@@ -332,6 +335,8 @@ export interface ChatComposerHandle {
   replyToResponse: (response: ResponseContextRecord) => boolean;
   openModelPicker: () => void;
   stepReasoningEffort: (direction: 1 | -1) => void;
+  /** RainCode: the effort levels this model offers and the one set, for the Tenon knob. */
+  readReasoning: () => ReturnType<typeof getComposerReasoningLevels>;
   toggleModelPicker: () => void;
   openControl: (command: KeybindingCommand) => void;
   isModelPickerOpen: () => boolean;
@@ -3351,6 +3356,15 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
         return true;
       },
       openModelPicker: openModelPickerStable,
+      readReasoning: () =>
+        noProviderAvailable
+          ? null
+          : getComposerReasoningLevels({
+              provider: selectedProvider,
+              model: selectedModel,
+              models: selectedProviderModels,
+              modelOptions: composerModelOptions?.[selectedInstanceId],
+            }),
       stepReasoningEffort: (direction) => {
         if (noProviderAvailable || pendingUserInputs.length > 0 || isEditingQueuedMessage) {
           return;
@@ -3973,7 +3987,11 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                             ? gt("Choose a project above to start a thread")
                             : showProviderUnavailable
                               ? gt("Enable a provider in Settings to send a message")
-                              : (offeredPromptSuggestion ?? m(DEFAULT_COMPOSER_PLACEHOLDER))
+                              : // RainCode: Tenon's words. A fresh task gets an example, a chat just "reply".
+                                (offeredPromptSuggestion ??
+                                (promptHistoryEntries.length > 0
+                                  ? gt("reply…")
+                                  : gt("a little app to track my runs…")))
                     }
                     placeholderSuffix={
                       offeredPromptSuggestion !== null ? (

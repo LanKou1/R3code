@@ -92,6 +92,12 @@ const EFFORT_DISPLAY_LABELS: Record<EffortDisplay, string> = {
   bars: msg("Bars", { $context: "show effort as bars" }),
 };
 
+const SEND_MOTION_LABELS = {
+  rise: msg("Dots, message rises"),
+  condense: msg("Dots, message condenses"),
+  plain: msg("Plain, the box rains"),
+};
+
 export function AppearanceSettingsPanel() {
   const searchableSetting = useSearchableSetting();
   const {
@@ -110,6 +116,7 @@ export function AppearanceSettingsPanel() {
   const [isImportThemeOpen, setIsImportThemeOpen] = useState(false);
   const settings = useScopedSettings();
   const updateSettings = useUpdateScopedSettings();
+  const sendMotionValue = settings.raincodeTheme === "plain" ? "plain" : settings.raincodeArrival;
   const environmentStageLabel = useEnvironmentStageLabel();
   const environmentStageVariant = resolveSidebarStageBackdropVariant(environmentStageLabel);
   const environmentIdentificationOptionList =
@@ -175,6 +182,45 @@ export function AppearanceSettingsPanel() {
       </SettingsSection>
 
       <SettingsSection id="appearance-interface" title={gt("Interface")}>
+        <SettingsRow
+          {...searchableSetting("send-motion")}
+          description={gt("What sits behind the box, and how a message leaves it.")}
+          resetAction={
+            settings.raincodeTheme !== DEFAULT_UNIFIED_SETTINGS.raincodeTheme ||
+            settings.raincodeArrival !== DEFAULT_UNIFIED_SETTINGS.raincodeArrival ? (
+              <SettingResetButton
+                ariaLabel={gt("Reset send motion to default")}
+                onClick={() =>
+                  updateSettings({
+                    raincodeTheme: DEFAULT_UNIFIED_SETTINGS.raincodeTheme,
+                    raincodeArrival: DEFAULT_UNIFIED_SETTINGS.raincodeArrival,
+                  })
+                }
+              />
+            ) : null
+          }
+          control={
+            <Select
+              value={sendMotionValue}
+              onValueChange={(value) => {
+                if (value === "plain") updateSettings({ raincodeTheme: "plain" });
+                else if (value === "rise" || value === "condense")
+                  updateSettings({ raincodeTheme: "dots", raincodeArrival: value });
+              }}
+            >
+              <SelectTrigger size="sm" className="w-full sm:w-52" aria-label={gt("Send motion")}>
+                <SelectValue>{m(SEND_MOTION_LABELS[sendMotionValue])}</SelectValue>
+              </SelectTrigger>
+              <SelectPopup align="end" alignItemWithTrigger={false}>
+                {Object.entries(SEND_MOTION_LABELS).map(([value, label]) => (
+                  <SelectItem hideIndicator key={value} value={value}>
+                    {m(label)}
+                  </SelectItem>
+                ))}
+              </SelectPopup>
+            </Select>
+          }
+        />
         <SettingsRow
           {...searchableSetting("setting-appearance-contrast")}
           description={gt("Adjust the contrast of colors and borders across the interface.")}

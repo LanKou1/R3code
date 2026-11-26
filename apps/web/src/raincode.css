@@ -1,0 +1,149 @@
+/* RainCode: T3's composer in TenonHarness clothes. Scoped to the composer; T3's logic is untouched. */
+
+/* The box: paper in light, sunk into the black edition in dark. */
+[data-slot="composer-shell"] {
+  --chat-composer-glass-surface: #ffffff;
+  --chat-composer-outline: #cccccc;
+  --glass-opacity: 100%;
+}
+.dark [data-slot="composer-shell"] {
+  --chat-composer-glass-surface: #151418;
+  --chat-composer-outline: #2e2d33;
+  --chat-composer-highlight: transparent;
+}
+[data-slot="composer-shell"]::before,
+[data-slot="composer-host"],
+[data-slot="composer-host"]::before,
+[data-slot="composer-host"]::after,
+[data-chat-composer-main-surface] {
+  border-radius: 22px !important;
+}
+[data-slot="composer-host"] {
+  box-shadow: none !important;
+}
+
+/* Type: Archivo, light, a little bigger. */
+[data-chat-composer-form] [data-testid="composer-editor"],
+[data-chat-composer-form] [data-testid="composer-editor"] * {
+  font-family: Archivo, var(--font-sans);
+  font-weight: 300;
+}
+[data-chat-composer-form] [data-testid="composer-editor"] {
+  font-size: 17px;
+}
+
+/* Inside the box only the paperclip and send. The model chip stays laid out (T3's picker anchors to it, and the
+   AI key under the box opens it) but out of sight; voice input is hidden. */
+[data-chat-composer-form] button[data-chat-provider-model-picker] {
+  opacity: 0;
+  pointer-events: none;
+  width: 1px;
+  min-width: 0;
+  padding: 0;
+  overflow: hidden;
+}
+[data-chat-composer-form] button[aria-label="Start voice input"] {
+  display: none;
+}
+
+/* Send: a deep navy key lit from below by a violet glow, with a thin blue rim (after the "Pro" badge). */
+[data-chat-composer-form] button[aria-label="Submit message"] {
+  background:
+    radial-gradient(
+      120% 75% at 50% 118%,
+      rgba(168, 140, 255, 0.95) 0%,
+      rgba(104, 96, 255, 0.55) 38%,
+      rgba(40, 52, 150, 0) 72%
+    ),
+    linear-gradient(180deg, #1c2452 0%, #11163a 100%) !important;
+  color: #fff !important;
+  border-radius: 12px !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(132, 150, 255, 0.38),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 0 14px -3px rgba(112, 100, 255, 0.6) !important;
+  transition:
+    transform 0.08s,
+    box-shadow 0.2s;
+}
+[data-chat-composer-form] button[aria-label="Submit message"]:hover:not(:disabled) {
+  box-shadow:
+    inset 0 0 0 1px rgba(150, 168, 255, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 0 18px -2px rgba(124, 110, 255, 0.75) !important;
+}
+/* T3 paints its send button with an SVG gradient layer; Tenon's key is flat. */
+[data-chat-composer-form] button[aria-label="Submit message"] > span.absolute {
+  display: none;
+}
+[data-chat-composer-form] button[aria-label="Submit message"]:active:not(:disabled) {
+  transform: translateY(1px);
+}
+[data-chat-composer-form] button[aria-label="Submit message"]:disabled,
+[data-chat-composer-form] button[aria-label="Submit message"][aria-disabled="true"] {
+  background: #e5e5e5 !important;
+  color: #9a9a98 !important;
+  box-shadow: none !important;
+}
+.dark [data-chat-composer-form] button[aria-label="Submit message"]:disabled,
+.dark [data-chat-composer-form] button[aria-label="Submit message"][aria-disabled="true"] {
+  background: #26252b !important;
+  color: #6b6a70 !important;
+}
+
+/* The row under the box (checkout, branch, access) reads like Tenon's hardware labels. */
+[data-slot="composer-context-strip"],
+[data-slot="composer-context-strip"] button {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 10px !important;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* User bubbles: a readable measure, Archivo like the box they came from. */
+[data-user-message-bubble] {
+  max-width: min(80%, 560px) !important;
+}
+[data-user-message-body] {
+  font-family: Archivo, var(--font-sans);
+  font-weight: 300;
+  line-height: 1.45;
+}
+[data-user-message-body] * {
+  font-family: inherit;
+}
+/* Over 6 lines: folded under a soft fade, opening downward on a quiet mono key. */
+[data-user-message-collapsible="true"] {
+  overflow: hidden;
+  transition: max-height 0.5s cubic-bezier(0.3, 0, 0.3, 1);
+}
+[data-user-message-collapsed="true"] {
+  -webkit-mask-image: linear-gradient(#000 62%, transparent);
+  mask-image: linear-gradient(#000 62%, transparent);
+}
+[data-user-message-more] {
+  display: block;
+  margin-top: 8px;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+  cursor: pointer;
+}
+[data-user-message-more]:hover {
+  color: var(--foreground);
+}
+[data-user-message-more]:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Tenon keys: the 2px lip under each key, gone while pressed. */
+[data-rc-key] {
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+}
+[data-rc-key]:active {
+  box-shadow: none;
+}

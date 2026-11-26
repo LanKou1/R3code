@@ -298,7 +298,8 @@ import {
 } from "../state/entities";
 import { useEnvironmentShellHasSnapshot } from "../state/shell";
 import { ChatComposer, type ChatComposerHandle } from "./chat/ChatComposer";
-import { DraftHeroHeadline } from "./chat/DraftHeroHeadline";
+import { TenonDotField, TenonKeys } from "./raincode/TenonHome";
+import { openCommandPalette } from "~/commandPaletteBus";
 import { ExpandedImageDialogHost, openExpandedImagePreview } from "./chat/ExpandedImageDialog";
 import {
   BranchRestoreConfirmHost,
@@ -1726,11 +1727,13 @@ export default function ChatView(props: ChatViewProps) {
     followUpSent: timelineMessages.filter((message) => message.role === "user").length > 1,
   });
   const onCancelWorktreeSetupStable = useStableCallback(() => void cancelWorktreeSetup());
+  const raincodeTheme = useClientSettings((settings) => settings.raincodeTheme);
   const [dockedDraftHeroThreadKey, setDockedDraftHeroThreadKey] = useState<string | null>(null);
   const draftHeroDockRequested =
     activeThreadKey !== null && dockedDraftHeroThreadKey === activeThreadKey;
   const isDraftHeroState = resolveDraftHeroState({
-    isLocalDraftThread,
+    // RainCode: saved threads that never got a message get the same centered home as drafts.
+    isLocalDraftThread: isLocalDraftThread || (isServerThread && !threadDetailLoading),
     hasTimelineEntries: !timelineEmpty,
     isWorking,
     draftHeroDockRequested,
@@ -3640,8 +3643,10 @@ export default function ChatView(props: ChatViewProps) {
             />
             <div
               {...conversationArea}
+              data-conversation-area=""
               className="relative flex min-h-0 flex-1 flex-col bg-background"
             >
+              {raincodeTheme === "dots" ? <TenonDotField active={isDraftHeroState} /> : null}
               <WorkspaceMutationIdContext value={workspaceMutationId}>
                 <ThreadTimeline
                   pendingApprovals={pendingApprovals}
@@ -3795,11 +3800,7 @@ export default function ChatView(props: ChatViewProps) {
                             : undefined
                         }
                       >
-                        <DraftHeroHeadline
-                          draftId={draftId}
-                          activeProjectRef={activeProjectRef}
-                          activeProjectTitle={activeProject?.title ?? null}
-                        />
+                        {/* RainCode: no headline on the home; the dots (or nothing) say enough. */}
                       </div>
                     </div>
                   ) : null}
@@ -4086,6 +4087,25 @@ export default function ChatView(props: ChatViewProps) {
                           <ComposerBannerStack items={composerBannerItems} detached />
                         </div>
                       ) : null}
+                      {/* RainCode: Tenon's key row under the box. Out of flow on the hero (like the headline),
+                          in flow under a docked chat composer. It's also the way to the model picker, whose chip is hidden. */}
+                      {isDraftHeroState && composerBannerItems.length > 0 ? null : (
+                        <div
+                          data-raincode-keys=""
+                          className={
+                            isDraftHeroState
+                              ? "absolute inset-x-0 top-full pt-1 [@media(max-height:34rem)]:static"
+                              : "pt-1"
+                          }
+                        >
+                          <TenonKeys
+                            onFolder={() => openCommandPalette({ open: "add-project" })}
+                            onModel={() => composerRef.current?.openModelPicker()}
+                            readEffort={() => composerRef.current?.readReasoning() ?? null}
+                            stepEffort={(d) => composerRef.current?.stepReasoningEffort(d)}
+                          />
+                        </div>
+                      )}
                     </div>
                     <div
                       aria-hidden
