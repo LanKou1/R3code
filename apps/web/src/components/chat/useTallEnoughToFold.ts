@@ -16,19 +16,19 @@ export function useTallEnoughToFold(enabled = true, foldLines?: number) {
   useLayoutEffect(() => {
     const content = ref.current;
     if (!enabled || !content) return;
-    const measure = () => {
+    // The observer reports after the browser's own layout and flushes before paint, so the first
+    // frame is already folded. Measuring here instead would force a layout mid-commit.
+    return observeResize(content, (entries) => {
+      const height = entries.at(-1)?.borderBoxSize[0]?.blockSize ?? content.offsetHeight;
       const remPx = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
       // RainCode: a fold measured in lines opens on anything past those lines.
       const lineHeight = Number.parseFloat(getComputedStyle(content).lineHeight) || 1.5 * remPx;
       setTallEnough(
         foldLines
-          ? content.offsetHeight > (foldLines + 0.5) * lineHeight
-          : content.offsetHeight >= FOLDED_HEIGHT_REM * 2 * remPx,
+          ? height > (foldLines + 0.5) * lineHeight
+          : height >= FOLDED_HEIGHT_REM * 2 * remPx,
       );
-    };
-    // Measured here too: waiting for the observer would paint one unfolded frame.
-    measure();
-    return observeResize(content, measure);
+    });
   }, [enabled, foldLines]);
   return { ref, tallEnough: enabled && tallEnough };
 }
